@@ -11,10 +11,17 @@ CREATE TABLE personne (
     age INT UNSIGNED,
     date_inscription DATE,
     etat TINYINT(1) NOT NULL DEFAULT 0,
-    statut ENUM ('membre', 'non-membre') DEFAULT 'non-membre',
+    statut ENUM ('membre', 'non-membre') NOT NULL DEFAULT 'non-membre',
     CV TEXT,
     salaire_annuel INT UNSIGNED
 )
 ENGINE=InnoDB;
 
 RENAME TABLE personne TO inv_personne;
+
+/* corrections ou notes éventuelles 
+if not exists pas nécessaire
+contrainte pas au bon endroit
+
+Alter uniquement sur cette table
+*/
