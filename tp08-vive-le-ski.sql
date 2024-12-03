@@ -207,7 +207,92 @@ INSERT INTO lignes_fiche (no_fiche, no_ligne,  reference_article, depart, retour
     (1007, 4, 'S02', DATE_SUB(NOW(),INTERVAL  0 DAY), NULL),
     (1008, 1, 'S01', DATE_SUB(NOW(),INTERVAL  0 DAY), NULL);
 
+/*----------REQUEST -------------------------*/
+
+/*1️⃣ Liste des clients (toutes les informations) dont le nom commence par un D*/
+SELECT no_client, nom, prenom, adresse, code_postal, ville FROM clients
+WHERE nom LIKE "d%";
+
+/*2️⃣ Nom et prénom de tous les clients*/
+SELECT nom, prenom FROM clients;
+
+/*3️⃣ Liste des fiches (n°, état) pour les clients (nom, prénom) qui habitent en Loire Atlantique (44)*/
+SELECT f.no_fiche, f.etat, c.nom, c.prenom
+FROM fiches AS f
+INNER JOIN clients AS c ON c.no_client = f.no_client
+WHERE c.code_postal LIKE "44%";
+
+/*4️⃣ Détail de la fiche n°1002 */
+SELECT c.nom, c.prenom, a.reference_article, a.designation, lf.depart, lf.retour 
+FROM lignes_fiche AS lf
+INNER JOIN fiches AS f ON f.no_fiche = lf.no_fiche
+INNER JOIN clients AS c ON c.no_client = f.no_client
+INNER JOIN articles AS a ON a.reference_article = lf.reference_article
 
 
+WHERE f.no_fiche = 1002;
 
 
+/*reste le montant total par jour */
+
+SELECT c.nom, c.prenom, a.reference_article, a.designation, lf.depart, lf.retour, SUM(t.prix_jour) AS 'montant'
+FROM lignes_fiche AS lf
+INNER JOIN fiches AS f ON f.no_fiche = lf.no_fiche
+INNER JOIN clients AS c ON c.no_client = f.no_client
+INNER JOIN articles AS a ON a.reference_article = lf.reference_article
+INNER JOIN gammes as g ON g.code_gamme = a.code_gamme
+INNER JOIN grille_tarifs as gt ON gt.code_gamme = g.code_gamme
+INNER JOIN tarifs as t ON t.code_tarif = gt.code_tarif
+WHERE f.no_fiche = 1002
+GROUP BY lf.depart, c.nom, c.prenom, a.reference_article, a.designation, lf.depart, lf.retour;
+
+/*raté c'est la différence entre le retour et le départ en nombre de jour  : SELECT DATEDIFF( date1, date2 ) */
+
+SELECT c.nom, c.prenom, a.reference_article, a.designation, lf.depart, lf.retour, DATEDIFF(lf.retour, lf.depart) AS diff, t.prix_jour
+FROM lignes_fiche AS lf
+INNER JOIN fiches AS f ON f.no_fiche = lf.no_fiche
+INNER JOIN clients AS c ON c.no_client = f.no_client
+INNER JOIN articles AS a ON a.reference_article = lf.reference_article
+INNER JOIN gammes as g ON g.code_gamme = a.code_gamme
+INNER JOIN grille_tarifs as gt ON gt.code_gamme = g.code_gamme
+INNER JOIN tarifs as t ON t.code_tarif = gt.code_tarif
+WHERE f.no_fiche = 1002
+ORDER BY a.reference_article, lf.depart;
+
+/*maintenant faire le calcul du montant par articles. 
+C'est la SUM de tous les jours / ma diff 
+Sum de tous les jours A03 (65)/4 j'ai pas compris les modalités de calcul du montant ça va être compliqué pour le total...*/
+
+/*5️⃣ Prix journalier moyen de location par gamme */
+SELECT g.libelle, AVG(t.prix_jour) AS 'tarif journalier moyen'
+FROM gammes AS g
+INNER JOIN grille_tarifs AS gt ON g.code_gamme = gt.code_gamme
+INNER JOIN tarifs AS t ON t.code_tarif = gt.code_tarif
+GROUP BY g.libelle;
+
+/*7️⃣ Grille des tarifs*/
+SELECT cat.libelle AS 'Catégorie', g.libelle AS 'Gamme', t.libelle AS 'Type', prix_jour AS 'Prix'
+FROM grille_tarifs AS gt
+INNER JOIN categories as cat ON cat.code_categorie = gt.code_categorie
+INNER JOIN gammes as g ON g.code_gamme = gt.code_gamme
+INNER JOIN tarifs AS t ON t.code_tarif = gt.code_tarif;
+
+/*8️⃣ Liste des locations de la catégorie SURF*/
+SELECT a.reference_article, a.designation, COUNT(lf.reference_article) AS 'location'
+FROM articles AS a
+INNER JOIN categories as c ON c.code_categorie = a.code_categorie
+INNER JOIN lignes_fiche as lf ON lf.reference_article = a.reference_article
+WHERE c.libelle = 'SURF'
+GROUP BY a.reference_article, a.designation;
+
+/*9️⃣ Calcul du nombre moyen d’articles loués par fiche de location -> attendu 2.375 blabla
+    du average à prévoir, on se base sur quoi ? le nombre d'entrée dans un n° de fiche  */
+SELECT f.date_creation, f.date_paiement, f.no_fiche, lf.no_ligne
+FROM fiches as f
+INNER JOIN lignes_fiche AS lf ON lf.no_fiche = f.no_fiche;
+
+/*______________STOP pour ce soir_______________________*/
+
+/*10 Calcul du nombre de fiches de location établies pour les catégories de location Ski alpin, Surf et Patinette*/
+
+/*11 Calcul du montant moyen des fiches de location*/
