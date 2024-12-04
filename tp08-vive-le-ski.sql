@@ -20,7 +20,7 @@ CREATE TABLE fiches (
         no_client INT NOT NULL,
         date_creation DATE NOT NULL,
         date_paiement DATE,
-        etat ENUM ('EC', 'RE', 'SO') NOT NULL,
+        etat ENUM ('EC', 'RE', 'SO') NOT NULL, /*En cours, rendu, soldé*/
         CONSTRAINT pk_fiches PRIMARY KEY(no_fiche)
 )ENGINE=InnoDB;
 
@@ -228,10 +228,7 @@ FROM lignes_fiche AS lf
 INNER JOIN fiches AS f ON f.no_fiche = lf.no_fiche
 INNER JOIN clients AS c ON c.no_client = f.no_client
 INNER JOIN articles AS a ON a.reference_article = lf.reference_article
-
-
 WHERE f.no_fiche = 1002;
-
 
 /*reste le montant total par jour */
 
@@ -260,8 +257,10 @@ WHERE f.no_fiche = 1002
 ORDER BY a.reference_article, lf.depart;
 
 /*maintenant faire le calcul du montant par articles. 
-C'est la SUM de tous les jours / ma diff 
-Sum de tous les jours A03 (65)/4 j'ai pas compris les modalités de calcul du montant ça va être compliqué pour le total...*/
+Calcul qui était bien la (diff + 1) * prix jour ! (méthode COALESLE si null passe la date du j avec DATE NOW() ) 
+
+Pour le total : on reprend la requête sans le montant qui était calculé et on additionne. On fait un tableau intermédaire dans un inner join.
+*/
 
 /*5️⃣ Prix journalier moyen de location par gamme */
 SELECT g.libelle, AVG(t.prix_jour) AS 'tarif journalier moyen'
@@ -286,13 +285,18 @@ WHERE c.libelle = 'SURF'
 GROUP BY a.reference_article, a.designation;
 
 /*9️⃣ Calcul du nombre moyen d’articles loués par fiche de location -> attendu 2.375 blabla
-    du average à prévoir, on se base sur quoi ? le nombre d'entrée dans un n° de fiche  */
+    du average à prévoir, on se base sur quoi ? le nombre d'entrée dans un n° de fiche  
+    
+    Requête imbriqué : 
+    On cherche le nombre d'articles loués par fiche, puis on fait la moyenne.Mon nombre d'articles par fiche est créé dans une table intermédiaire depuis from ce qui onus permettra de faire le calcul.*/
 SELECT f.date_creation, f.date_paiement, f.no_fiche, lf.no_ligne
 FROM fiches as f
 INNER JOIN lignes_fiche AS lf ON lf.no_fiche = f.no_fiche;
 
-/*______________STOP pour ce soir_______________________*/
-
 /*10 Calcul du nombre de fiches de location établies pour les catégories de location Ski alpin, Surf et Patinette*/
 
-/*11 Calcul du montant moyen des fiches de location*/
+/*11 Calcul du montant moyen des fiches de location
+POur chaque fiche on récupère le montant total
+Puis on fait la moyenne*/
+
+/*______________VOIR CORRECTION_______________________*/
