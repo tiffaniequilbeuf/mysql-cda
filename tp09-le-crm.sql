@@ -1,4 +1,4 @@
-/*BASE : Créer la base de donnée*/
+/*PARTIE 1 - Créer la base de donnée*/
 DROP DATABASE IF EXISTS le_crm;
 
 CREATE DATABASE le_crm CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -46,3 +46,15 @@ ALTER TABLE devis ADD CONSTRAINT fk_devis_projets FOREIGN KEY (projet_id) REFERE
 ALTER TABLE factures ADD CONSTRAINT fk_factures_devis FOREIGN KEY (devis_id) REFERENCES devis(numero_devis);
 
 
+/*PARTIE 1 - Ajouter les données*/
+
+INSERT INTO clients (client) VALUES 
+('Mairie de Rennes'),
+('Neo Soft'),
+('Sopra'),
+('Accenture'),
+('Amazon');
+
+/*Génération avec dbdiagram.io
+https://dbdiagram.io/d/TP09-le-crm-67518ac7e9daa85acac3c099
+*/
